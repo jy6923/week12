@@ -1,0 +1,153 @@
+
+
+
+import streamlit as st
+import plotly.express  as px
+import pandas as pd
+import numpy as np
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.support.ui import WebDriverWait
+
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+import time
+
+
+# 데이터 로드
+def jobkorea():
+    from selenium import webdriver
+    from selenium.webdriver.chrome.service import Service
+    from webdriver_manager.chrome import ChromeDriverManager
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.support import expected_conditions as EC
+    from selenium.webdriver.common.by import By
+    import time
+    options = Options()
+    options.add_argument("--headless")  # GUI 없는 환경에서 필수
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--remote-debugging-port=9222")  # macOS에서 도움이 됨
+
+    service = Service(executable_path=ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service)
+
+    url = 'https://www.jobkorea.co.kr/Search/?stext=데이터분석' 
+#dev-content-wrap > article > section.content-recruit.on > article.list > article:nth-child(1) > div.list-section-information > ul
+#dev-content-wrap > article > section.content-recruit.on > article.list > article:nth-child(1) > div.list-section-information > ul
+#dev-content-wrap > article > section.content-recruit.on > article.list > article:nth-child(2) > div.list-section-information > ul.chip-information-group
+#dev-content-wrap > article > section.content-recruit.on > article.list > article:nth-child(3) > div.list-section-information > ul
+#dev-content-wrap > article > section.content-recruit.on > article.list > article:nth-child(4) > div.list-section-information > ul.chip-information-group
+    driver.get(url)
+    html = driver.page_source
+    wait = WebDriverWait(driver, 10)
+
+    time.sleep(5)
+    elements = driver.find_elements(By.CSS_SELECTOR, "a.information-title-link.dev-view")
+    url = []
+    for e in elements:
+        ur = e.get_attribute('href')
+        url.append(ur)
+    body = []
+    for i in range (1, 21):
+        body_info = {}
+        #dev-content-wrap > article > section.content-recruit.on > article.list > article:nth-child(1) > div.list-section-information > div > a
+        #dev-content-wrap > article > section.content-recruit.on > article.list > article:nth-child(1) > div.list-section-corp > a
+        Col_company = driver.find_element(By.CSS_SELECTOR, f'#dev-content-wrap > article > section.content-recruit.on > article.list > article:nth-child({i}) > div.list-section-corp > a').text
+        Col_recruit = driver.find_element(By.CSS_SELECTOR, f'#dev-content-wrap > article > section.content-recruit.on > article.list > article:nth-child({i}) > div.list-section-information > div > a').text
+        try: 
+            Col_detail = driver.find_element(By.CSS_SELECTOR, f'#dev-content-wrap > article > section.content-recruit.on > article.list > article:nth-child({i}) > div.list-section-information > ul.chip-benefit-group').text
+        except:
+                        Col_detail = driver.find_element(By.CSS_SELECTOR, f'#dev-content-wrap > article > section.content-recruit.on > article.list > article:nth-child({i}) > div.list-section-information > ul').text
+        body_info['Col_company'] = Col_company
+        body_info['Col_recruit'] = Col_recruit
+        body_info['Col_detail'] = Col_detail
+        body_info['url'] = url[i-1]
+        body.append(body_info)
+    body = pd.DataFrame(body)
+    body['site'] = 'jobkorea'
+    driver.quit()
+    return body
+
+
+def saramin():
+    from selenium import webdriver
+    from selenium.webdriver.chrome.service import Service
+    from webdriver_manager.chrome import ChromeDriverManager
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.support import expected_conditions as EC
+    from selenium.webdriver.common.by import By
+    import time
+    options = Options()
+    options.add_argument("--headless")  # GUI 없는 환경에서 필수
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--remote-debugging-port=9222")  # macOS에서 도움이 됨
+
+    service = Service(executable_path=ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service)
+
+    url = 'https://www.saramin.co.kr/zf_user/search?search_area=main&search_done=y&search_optional_item=n&searchType=search&searchword=%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B6%84%EC%84%9D'
+
+    driver.get(url)
+    html = driver.page_source
+    wait = WebDriverWait(driver, 10)
+
+    time.sleep(5)
+    elements = driver.find_elements(By.CSS_SELECTOR, "a.data_layer")
+    url = []
+    for e in elements:
+        ur = e.get_attribute('href')
+        url.append(ur)
+    body = []
+    for i in list(range (1, 4)) + list(range(6, 43)):
+        body_info = {}
+        #recruit_info_list > div.content > div:nth-child(1) > div.area_job > h2 > a > span
+        #recruit_info_list > div.content > div:nth-child(6) > div.area_corp > strong > a
+        #recruit_info_list > div.content > div:nth-child(6) > div.area_corp > strong > a
+        #recruit_info_list > div.content > div:nth-child(3) > div.area_corp > strong > a
+        Col_company = driver.find_element(By.CSS_SELECTOR, f'#recruit_info_list > div.content > div:nth-child({i}) > div.area_corp > strong > a').text
+        Col_recruit = driver.find_element(By.CSS_SELECTOR, f'#recruit_info_list > div.content > div:nth-child({i}) > div.area_job > h2 > a > span').text
+        Col_detail = driver.find_element(By.CSS_SELECTOR, f'#recruit_info_list > div.content > div:nth-child({i}) > div.area_job > div.job_condition').text
+        body_info['Col_company'] = Col_company
+        body_info['Col_recruit'] = Col_recruit
+        body_info['Col_detail'] = Col_detail
+        body_info['url'] = url[i-1]
+        body.append(body_info)
+    body = pd.DataFrame(body)
+    body['site'] = 'saramin'
+    driver.quit()
+    return body
+
+if __name__ == "__main__":
+
+    st.title('Title')
+    with st.form('form_1', clear_on_submit = True):
+        col1 = st.columns(1)
+        submitted1 = col1[0].form_submit_button('Recruit Searching')
+
+    if submitted1:
+        import matplotlib.pyplot as plt
+        import pandas as pd
+        df1 = jobkorea()
+        df2 = saramin()
+        df = pd.concat([df1, df2], ignore_index=True)
+        total = len(df['url'])
+        df_count = df.groupby('site')['url'].count().reset_index()
+        df_count = df_count.rename(columns={'url': 'count'})
+        df_count['ratio'] = df_count['count'] * 100 / total
+        st.dataframe(df)
+        st.dataframe(df_count)
+        fig, ax = plt.subplots(figsize=(10,6))
+        wedges, texts, autotexts = ax.pie(
+            df_count['ratio'],
+            labels = df_count['site'],
+            autopct='%0.1f%%',
+        )
+        ax.set_title('Recruitment Ratio')
+        ax.legend(wedges, df_count['site'], loc='center left', bbox_to_anchor=(1, 0.5))
+        st.pyplot(fig)
+
